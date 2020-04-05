@@ -44,7 +44,7 @@
             //POST;
             fetch('http://localhost:3000/addProduct', {
                 method: 'POST',
-                body: JSON.stringify(product),
+                body: JSON.stringify({product}),
                 headers: {
                     "Content-type": "application/json; charset=UTF-8"
                 }
