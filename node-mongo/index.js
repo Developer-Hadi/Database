@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const MongoClient = require('mongodb').MongoClient;
+require('dotenv').config();
 
 
 const app = express();
@@ -9,21 +10,28 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-const dbUser = 'dbUser';
-const pass = 'dY4ZQNWHCcBgQrcZ';
-const uri = "mongodb+srv://dbUser:dY4ZQNWHCcBgQrcZ@cluster0-lggqa.mongodb.net/test?retryWrites=true&w=majority";
+const  uri = process.env.DB_PATH;
 
-const client = new MongoClient(uri, { useNewUrlParser: true });
+let client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 const users = ['Asad', 'Monir', 'Sohana', 'Shahnaz', 'Raju', 'Mannan'];
 
 
 //GET method;
-app.get('/', (req, res) => {
-    const fruit = {
-        product: 'Kola',
-        price: 2500
-    }
-    res.send(fruit);
+app.get('/products', (req, res) => {
+    client = new MongoClient(uri, { useNewUrlParser: true });
+    client.connect(err => {
+        const collection = client.db("onlineStore").collection("products");
+        collection.find().limit(10).toArray((err, documents) => {
+           if(err){
+               console.log(err);
+               res.status(500).send({message:err});
+           }
+           else{
+             res.send(documents);  
+           }            
+        });
+        client.close();
+      });
 });
 
 
@@ -36,10 +44,8 @@ app.get('/users/:id', (req, res) => {
 
 //POST method;
 app.post('/addProduct', (req, res) => {
-
     const product = req.body;
-
-    console.log(product);
+    client = new MongoClient(uri, { useNewUrlParser: true });
     client.connect(err => {
         const collection = client.db("onlineStore").collection("products");
         collection.insertOne(product, (err, result) => {
@@ -51,10 +57,10 @@ app.post('/addProduct', (req, res) => {
              res.send(result.ops[0]);  
            }            
         });
-        client.close();
+        //client.close();
       });
 });
 
 
-
-app.listen(3000, () => console.log('Listening to port 3000'));
+const port = process.env.PORT || 2200;
+app.listen(port, () => console.log('Listening to port 2200'));
